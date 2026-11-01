@@ -54,7 +54,9 @@ public class Random_example_generation {
             break;
             case 4: {
                 znak = '/';
-                example = namber_1 * namber_2;
+                int product = namber_1 * namber_2; // Множимо числа
+                example = namber_1; // Правильна відповідь — одне з чисел
+                namber_1 = product; // Робимо перше число більшим (діленим)
             }
             break;
         }
