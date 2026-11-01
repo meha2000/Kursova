@@ -1,5 +1,4 @@
 import logik.Random_example_generation;
-import windows.Author;
 import windows.Menu;
 
 import javax.swing.*;
@@ -15,8 +14,6 @@ public class Main {
 
         JFrame myMenu = new Menu();
         myMenu.setVisible(true);
-        //JFrame proAutor = new Author();
-        //proAutor.setVisible(true);
 
     }
 }

@@ -62,8 +62,6 @@ class AuthorCanvas extends Canvas {
 
         g2d.setColor(new Color(0, 180, 255));
         g2d.drawString("Telegram: @Miha20089", textX, startY + lineHeight * 4 + 8);
-
-        g2d.setColor(new Color(80, 200, 255));
         g2d.drawString("GitHub: https://github.com/meha2000", textX, startY + lineHeight * 5 + 14);
     }
 }
