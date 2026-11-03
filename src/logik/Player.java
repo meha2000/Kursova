@@ -8,6 +8,8 @@ public class Player implements Serializable {
     private String username;
     private String passwordHash;
 
+    private int bestScore = 0;
+
     public Player(String username, String plainPassword) {
         this.username = username;
         this.passwordHash = hashPassword(plainPassword);
@@ -40,6 +42,14 @@ public class Player implements Serializable {
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
+        }
+    }
+    public int getBestScore() {
+        return bestScore;
+    }
+    public void updateBestScore(int newScore) {
+        if (newScore > this.bestScore) {
+            this.bestScore = newScore;
         }
     }
 }

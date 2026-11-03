@@ -1,12 +1,17 @@
 package windows;
 
+import logik.Player;
 import logik.Random_example_generation;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 
 public class Game extends JFrame {
+    private Player currentPlayer; // Поточний гравець
     private int complexity = 1;
     private Random_example_generation currentExample;
 
@@ -22,8 +27,13 @@ public class Game extends JFrame {
     private Timer gameTimer;
     private int timeLeft = 60;
 
-    public Game() {
+    private static final String DATA_FILE = "players_data.dat";
+
+    // Змінили конструктор, щоб він приймав гравця
+    public Game(Player player) {
         super("Швидка Арифметика — Гра");
+        this.currentPlayer = player;
+
         setIconImage(new ImageIcon("Photo/Icon/menu_icon.png").getImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setSize(550, 420);
@@ -36,35 +46,41 @@ public class Game extends JFrame {
         gamePanel.setLayout(null);
         setContentPane(gamePanel);
 
+        // 1. Інформація про складність
         lblComplexityInfo = new JLabel("Рівень складності: " + complexity, SwingConstants.CENTER);
         lblComplexityInfo.setFont(new Font("Arial", Font.BOLD, 14));
         lblComplexityInfo.setForeground(new Color(255, 200, 0));
         lblComplexityInfo.setBounds(50, 30, 450, 25);
         gamePanel.add(lblComplexityInfo);
 
+        // 2. Таймер
         lblTimer = new JLabel("Час: " + timeLeft + " с", SwingConstants.CENTER);
         lblTimer.setFont(new Font("Arial", Font.BOLD, 16));
         lblTimer.setForeground(new Color(255, 80, 80));
         lblTimer.setBounds(50, 60, 450, 25);
         gamePanel.add(lblTimer);
 
+        // 3. Напис із прикладом
         lblExample = new JLabel("", SwingConstants.CENTER);
         lblExample.setFont(new Font("Arial", Font.BOLD, 28));
         lblExample.setForeground(Color.WHITE);
         lblExample.setBounds(50, 105, 450, 50);
         gamePanel.add(lblExample);
 
+        // 4. Поле для введення відповіді
         txtAnswer = new JTextField();
         txtAnswer.setFont(new Font("Arial", Font.BOLD, 24));
         txtAnswer.setHorizontalAlignment(JTextField.CENTER);
         txtAnswer.setBounds(200, 175, 150, 45);
         gamePanel.add(txtAnswer);
 
+        // 5. Кнопка перевірки
         btnCheck = new JButton("Перевірити");
         btnCheck.setFont(new Font("Arial", Font.BOLD, 16));
         btnCheck.setBounds(200, 235, 150, 40);
         gamePanel.add(btnCheck);
 
+        // 6. Лічильник балів
         lblScore = new JLabel("Правильних відповідей: 0", SwingConstants.CENTER);
         lblScore.setFont(new Font("Arial", Font.PLAIN, 14));
         lblScore.setForeground(new Color(200, 200, 200));
@@ -150,6 +166,9 @@ public class Game extends JFrame {
         btnCheck.setEnabled(false);
         lblExample.setText("Час вийшов!");
 
+        // Оновлюємо результат у файлі гравців
+        updatePlayerScore();
+
         JOptionPane.showMessageDialog(
                 this,
                 "Гра закінчилась!\nВаш результат: " + score + " правильних відповідей.",
@@ -158,6 +177,37 @@ public class Game extends JFrame {
         );
 
         dispose();
+    }
+
+    // Метод для оновлення рекорду у файлі
+    private void updatePlayerScore() {
+        List<Player> players = loadPlayers();
+        for (Player p : players) {
+            if (p.getUsername().equals(currentPlayer.getUsername())) {
+                p.updateBestScore(score); // Оновлюємо рекорд
+                currentPlayer.updateBestScore(score);
+                break;
+            }
+        }
+        savePlayers(players);
+    }
+
+    private List<Player> loadPlayers() {
+        File file = new File(DATA_FILE);
+        if (!file.exists()) return new ArrayList<>();
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            return (List<Player>) ois.readObject();
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private void savePlayers(List<Player> players) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(DATA_FILE))) {
+            oos.writeObject(players);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     class GamePanel extends JPanel {
