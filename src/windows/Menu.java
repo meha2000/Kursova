@@ -1,23 +1,30 @@
 package windows;
 
+import logik.Player;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
 
 public class Menu extends JFrame {
-    public Menu() {
+    private Player currentPlayer;
+
+    public Menu(Player player) {
         super("Швидка Арефметика");
+        this.currentPlayer = player;
+
         setIconImage(new ImageIcon("Photo/Icon/menu_icon.png").getImage());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(750, 550);
         setLocationRelativeTo(null);
-        add(new Buttonns());
+
+        add(new Buttonns(currentPlayer));
     }
 }
 
 
 class Buttonns extends JPanel {
+    private Player currentPlayer;
     Image fon = new ImageIcon("Photo/fon/fon1.jpg").getImage();
     ImageIcon rawIcon = new ImageIcon("Photo/Botton/Menu_Botton.png");
 
@@ -26,8 +33,8 @@ class Buttonns extends JPanel {
     JButton start = new JButton("Почати гру");
     JButton exit = new JButton("Вихід");
 
-    public Buttonns() {
-
+    public Buttonns(Player player) { // Оновлений конструктор панелі
+        this.currentPlayer = player;
         setLayout(null);
         ButtonsEvents listener = new ButtonsEvents();
 
@@ -35,9 +42,7 @@ class Buttonns extends JPanel {
         setupButton(rules, rawIcon, listener);
         setupButton(start, rawIcon, listener);
         setupButton(exit, rawIcon, listener);
-
     }
-
 
     private void setupButton(JButton btn, ImageIcon icon, ActionListener listener) {
         btn.setContentAreaFilled(false);
@@ -90,7 +95,6 @@ class Buttonns extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(fon, 0, 0, getWidth(), getHeight(), this);
-
     }
 
 
@@ -110,6 +114,5 @@ class Buttonns extends JPanel {
                 System.exit(0);
             }
         }
-
     }
 }
