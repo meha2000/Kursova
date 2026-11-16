@@ -3,25 +3,24 @@ package windows;
 import logik.Player;
 import logik.Random_example_generation;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 
-public class Game extends JFrame {
-    private Player currentPlayer; // Поточний гравець
+public class Game extends JPanel {
+    private Menu parentWindow;
+    private Player currentPlayer;
     private int complexity = 1;
     private Random_example_generation currentExample;
 
-    private GamePanel gamePanel;
     private JLabel lblComplexityInfo;
     private JLabel lblTimer;
     private JLabel lblExample;
     private JTextField txtAnswer;
     private JButton btnCheck;
     private JLabel lblScore;
+    private JButton btnBack;
 
     private int score = 0;
     private Timer gameTimer;
@@ -29,90 +28,72 @@ public class Game extends JFrame {
 
     private static final String DATA_FILE = "players_data.dat";
 
-    // Змінили конструктор, щоб він приймав гравця
-    public Game(Player player) {
-        super("Швидка Арифметика — Гра");
+    public Game(Menu parentWindow, Player player) {
+        this.parentWindow = parentWindow;
         this.currentPlayer = player;
 
-        setIconImage(new ImageIcon("Photo/Icon/menu_icon.png").getImage());
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(550, 420);
-        setLocationRelativeTo(null);
-        setResizable(false);
+        setLayout(null);
+        setBackground(new Color(30, 30, 40));
 
         askForComplexity();
 
-        gamePanel = new GamePanel();
-        gamePanel.setLayout(null);
-        setContentPane(gamePanel);
-
-        // 1. Інформація про складність
         lblComplexityInfo = new JLabel("Рівень складності: " + complexity, SwingConstants.CENTER);
         lblComplexityInfo.setFont(new Font("Arial", Font.BOLD, 14));
         lblComplexityInfo.setForeground(new Color(255, 200, 0));
-        lblComplexityInfo.setBounds(50, 30, 450, 25);
-        gamePanel.add(lblComplexityInfo);
+        lblComplexityInfo.setBounds(50, 30, 650, 25);
+        add(lblComplexityInfo);
 
-        // 2. Таймер
         lblTimer = new JLabel("Час: " + timeLeft + " с", SwingConstants.CENTER);
         lblTimer.setFont(new Font("Arial", Font.BOLD, 16));
         lblTimer.setForeground(new Color(255, 80, 80));
-        lblTimer.setBounds(50, 60, 450, 25);
-        gamePanel.add(lblTimer);
+        lblTimer.setBounds(50, 60, 650, 25);
+        add(lblTimer);
 
-        // 3. Напис із прикладом
         lblExample = new JLabel("", SwingConstants.CENTER);
         lblExample.setFont(new Font("Arial", Font.BOLD, 28));
         lblExample.setForeground(Color.WHITE);
-        lblExample.setBounds(50, 105, 450, 50);
-        gamePanel.add(lblExample);
+        lblExample.setBounds(50, 110, 650, 50);
+        add(lblExample);
 
-        // 4. Поле для введення відповіді
         txtAnswer = new JTextField();
         txtAnswer.setFont(new Font("Arial", Font.BOLD, 24));
         txtAnswer.setHorizontalAlignment(JTextField.CENTER);
-        txtAnswer.setBounds(200, 175, 150, 45);
-        gamePanel.add(txtAnswer);
+        txtAnswer.setBounds(300, 180, 150, 45);
+        add(txtAnswer);
 
-        // 5. Кнопка перевірки
         btnCheck = new JButton("Перевірити");
         btnCheck.setFont(new Font("Arial", Font.BOLD, 16));
-        btnCheck.setBounds(200, 235, 150, 40);
-        gamePanel.add(btnCheck);
+        btnCheck.setBounds(300, 240, 150, 40);
+        add(btnCheck);
 
-        // 6. Лічильник балів
         lblScore = new JLabel("Правильних відповідей: 0", SwingConstants.CENTER);
         lblScore.setFont(new Font("Arial", Font.PLAIN, 14));
         lblScore.setForeground(new Color(200, 200, 200));
-        lblScore.setBounds(50, 305, 450, 30);
-        gamePanel.add(lblScore);
+        lblScore.setBounds(50, 310, 650, 30);
+        add(lblScore);
+
+        // Кнопка повернення в меню всередині червоної рамки
+        btnBack = new JButton("У меню");
+        btnBack.setFont(new Font("Arial", Font.BOLD, 12));
+        btnBack.setBounds(320, 430, 100, 35);
+        btnBack.addActionListener(e -> {
+            if (gameTimer != null) gameTimer.stop();
+            parentWindow.showScreen("MENU");
+        });
+        add(btnBack);
 
         generateNewTask();
 
-        btnCheck.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                checkAnswer();
-            }
-        });
+        btnCheck.addActionListener(e -> checkAnswer());
+        txtAnswer.addActionListener(e -> checkAnswer());
 
-        txtAnswer.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                checkAnswer();
-            }
-        });
+        gameTimer = new Timer(1000, e -> {
+            timeLeft--;
+            lblTimer.setText("Час: " + timeLeft + " с");
 
-        gameTimer = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                timeLeft--;
-                lblTimer.setText("Час: " + timeLeft + " с");
-
-                if (timeLeft <= 0) {
-                    gameTimer.stop();
-                    endGame();
-                }
+            if (timeLeft <= 0) {
+                gameTimer.stop();
+                endGame();
             }
         });
         gameTimer.start();
@@ -166,7 +147,6 @@ public class Game extends JFrame {
         btnCheck.setEnabled(false);
         lblExample.setText("Час вийшов!");
 
-        // Оновлюємо результат у файлі гравців
         updatePlayerScore();
 
         JOptionPane.showMessageDialog(
@@ -176,15 +156,14 @@ public class Game extends JFrame {
                 JOptionPane.INFORMATION_MESSAGE
         );
 
-        dispose();
+        parentWindow.showScreen("MENU");
     }
 
-    // Метод для оновлення рекорду у файлі
     private void updatePlayerScore() {
         List<Player> players = loadPlayers();
         for (Player p : players) {
             if (p.getUsername().equals(currentPlayer.getUsername())) {
-                p.updateBestScore(score); // Оновлюємо рекорд
+                p.updateBestScore(score);
                 currentPlayer.updateBestScore(score);
                 break;
             }
@@ -210,18 +189,17 @@ public class Game extends JFrame {
         }
     }
 
-    class GamePanel extends JPanel {
-        @Override
-        protected void paintComponent(Graphics gr) {
-            super.paintComponent(gr);
-            Graphics2D g2d = (Graphics2D) gr;
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    @Override
+    protected void paintComponent(Graphics gr) {
+        super.paintComponent(gr);
+        Graphics2D g2d = (Graphics2D) gr;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            g2d.setColor(new Color(30, 30, 40));
-            g2d.fillRect(0, 0, getWidth(), getHeight());
+        g2d.setColor(new Color(30, 30, 40));
+        g2d.fillRect(0, 0, getWidth(), getHeight());
 
-            g2d.setColor(new Color(250, 0, 0));
-            g2d.drawRoundRect(20, 20, getWidth() - 40, getHeight() - 50, 20, 20);
-        }
+        g2d.setColor(new Color(250, 0, 0));
+        // Малюємо червону рамку з відступами
+        g2d.drawRoundRect(20, 20, getWidth() - 40, getHeight() - 50, 20, 20);
     }
 }

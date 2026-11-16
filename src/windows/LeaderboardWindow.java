@@ -1,30 +1,20 @@
 package windows;
 
 import logik.Player;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class LeaderboardWindow extends JFrame {
+public class LeaderboardWindow extends JPanel {
     private static final String DATA_FILE = "players_data.dat";
 
-    public LeaderboardWindow() {
-        super("Швидка Арифметика — Таблиця лідерів");
-        setIconImage(new ImageIcon("Photo/Icon/menu_icon.png").getImage());
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(550, 450);
-        setLocationRelativeTo(null);
-        setResizable(false);
-
-        getContentPane().setBackground(new Color(30, 30, 40));
+    public LeaderboardWindow(Menu parentWindow) {
         setLayout(new BorderLayout());
+        setBackground(new Color(30, 30, 40));
 
         JLabel lblTitle = new JLabel("Таблиця рекордів", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Arial", Font.BOLD, 18));
@@ -57,17 +47,24 @@ public class LeaderboardWindow extends JFrame {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         add(scrollPane, BorderLayout.CENTER);
+
+        JButton btnBack = new JButton("Назад у меню");
+        btnBack.setFont(new Font("Arial", Font.BOLD, 14));
+        btnBack.addActionListener(e -> parentWindow.showScreen("MENU"));
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(new Color(30, 30, 40));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
+        bottomPanel.add(btnBack);
+        add(bottomPanel, BorderLayout.SOUTH);
     }
 
     private List<Player> loadPlayers() {
         File file = new File(DATA_FILE);
-        if (!file.exists()) {
-            return new ArrayList<>();
-        }
+        if (!file.exists()) return new ArrayList<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             return (List<Player>) ois.readObject();
         } catch (Exception e) {
-            e.printStackTrace();
             return new ArrayList<>();
         }
     }

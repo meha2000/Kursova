@@ -16,7 +16,6 @@ public class LoginWindow extends JFrame {
     private JButton btnLogin;
     private JButton btnRegister;
 
-    // Файл, де зберігатимуться зареєстровані гравці
     private static final String DATA_FILE = "players_data.dat";
 
     public LoginWindow() {
@@ -52,19 +51,16 @@ public class LoginWindow extends JFrame {
         txtPassword.setBounds(150, 80, 180, 30);
         add(txtPassword);
 
-        // 3. Кнопка "Увійти"
         btnLogin = new JButton("Увійти");
         btnLogin.setBounds(50, 140, 130, 35);
         btnLogin.setFont(new Font("Arial", Font.BOLD, 14));
         add(btnLogin);
 
-        // 4. Кнопка "Реєстрація"
         btnRegister = new JButton("Реєстрація");
         btnRegister.setBounds(200, 140, 130, 35);
         btnRegister.setFont(new Font("Arial", Font.BOLD, 14));
         add(btnRegister);
 
-        // Обробка події входу
         btnLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -72,7 +68,6 @@ public class LoginWindow extends JFrame {
             }
         });
 
-        // Обробка події реєстрації нового гравця
         btnRegister.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -81,7 +76,6 @@ public class LoginWindow extends JFrame {
         });
     }
 
-    // Завантаження списку всіх гравців із файлу
     private List<Player> loadPlayers() {
         File file = new File(DATA_FILE);
         if (!file.exists()) {
@@ -95,7 +89,6 @@ public class LoginWindow extends JFrame {
         }
     }
 
-    // Збереження списку гравців у файл
     private void savePlayers(List<Player> players) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(DATA_FILE))) {
             oos.writeObject(players);
@@ -104,7 +97,6 @@ public class LoginWindow extends JFrame {
         }
     }
 
-    // Логіка входу в аккаунт
     private void loginUser() {
         String username = txtUsername.getText().trim();
         String password = new String(txtPassword.getPassword()).trim();
@@ -120,7 +112,6 @@ public class LoginWindow extends JFrame {
         for (Player p : players) {
             if (p.getUsername().equals(username)) {
                 found = true;
-                // Перевірка через хеш, який ми реалізували в класі Player!
                 if (p.checkPassword(password)) {
                     JOptionPane.showMessageDialog(this, "Успішний вхід, " + username + "!", "Вітаємо", JOptionPane.INFORMATION_MESSAGE);
                     openMainMenu(p);
@@ -136,7 +127,7 @@ public class LoginWindow extends JFrame {
         }
     }
 
-    // Логіка реєстрації нового гравця
+
     private void registerUser() {
         String username = txtUsername.getText().trim();
         String password = new String(txtPassword.getPassword()).trim();
@@ -148,7 +139,6 @@ public class LoginWindow extends JFrame {
 
         List<Player> players = loadPlayers();
 
-        // Перевіряємо, чи немає вже такого користувача
         for (Player p : players) {
             if (p.getUsername().equals(username)) {
                 JOptionPane.showMessageDialog(this, "Користувач із таким ім'ям вже існує!", "Помилка", JOptionPane.WARNING_MESSAGE);
@@ -156,7 +146,6 @@ public class LoginWindow extends JFrame {
             }
         }
 
-        // Створюємо нового гравця (пароль автоматично хешується в конструкторі Player)
         Player newPlayer = new Player(username, password);
         players.add(newPlayer);
         savePlayers(players);
@@ -164,13 +153,10 @@ public class LoginWindow extends JFrame {
         JOptionPane.showMessageDialog(this, "Реєстрація успішна! Тепер ви можете увійти.", "Успіх", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // Відкриття головного меню програми після успішного входу
     private void openMainMenu(Player player) {
-        // Тут ми передаємо поточного авторизованого гравця у головне меню
-        dispose(); // Закриваємо вікно логіна
 
-        // Відкриваємо головне меню (Buttons), передаючи гравця
-        // (Переконайся, що у твоєму класі Buttons є конструктор, що приймає Player, або збережемо його в загальний контекст)
+        dispose();
+
         Menu mainMenu = new Menu(player);
         mainMenu.setVisible(true);
     }

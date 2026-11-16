@@ -1,58 +1,41 @@
 package windows;
 
-import java.awt.*;
 import javax.swing.*;
+import java.awt.*;
 
-public class Rules extends JFrame {
-    public Rules() {
-        super("Правила гри");
-        setIconImage(new ImageIcon("Photo/Icon/menu_icon.png").getImage());
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setBounds(750, 180, 600, 450);
-        setResizable(false);
+public class Rules extends JPanel {
+    public Rules(Menu parentWindow) {
+        setLayout(new BorderLayout());
+        setBackground(new Color(30, 30, 40));
 
-        add(new RulesCanvas());
-    }
-}
+        JLabel lblTitle = new JLabel("Правила гри «Швидка Арифметика»", SwingConstants.CENTER);
+        lblTitle.setFont(new Font("Arial", Font.BOLD, 20));
+        lblTitle.setForeground(Color.WHITE);
+        lblTitle.setBorder(BorderFactory.createEmptyBorder(25, 0, 15, 0));
+        add(lblTitle, BorderLayout.NORTH);
 
-class RulesCanvas extends Canvas {
-    @Override
-    public void paint(Graphics gr) {
-        Graphics2D g2d = (Graphics2D) gr;
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        JTextArea txtRules = new JTextArea(
+                "1. Гра триває рівно 60 секунд.\n" +
+                        "2. Вам необхідно якомога швидше розв'язувати арифметичні приклади.\n" +
+                        "3. Вводьте відповідь у поле та натискайте Enter або кнопку «Перевірити».\n" +
+                        "4. За кожну правильну відповідь нараховується 1 бал.\n" +
+                        "5. Після закінчення часу ваш результат буде автоматично збережено у загальну таблицю лідерів."
+        );
+        txtRules.setFont(new Font("Arial", Font.PLAIN, 15));
+        txtRules.setForeground(new Color(220, 220, 220));
+        txtRules.setBackground(new Color(30, 30, 40));
+        txtRules.setEditable(false);
+        txtRules.setMargin(new Insets(20, 50, 20, 50));
+        add(txtRules, BorderLayout.CENTER);
 
-        g2d.setColor(new Color(0, 0, 0));
-        g2d.fillRect(0, 0, getWidth(), getHeight());
+        JButton btnBack = new JButton("Назад у меню");
+        btnBack.setFont(new Font("Arial", Font.BOLD, 14));
+        btnBack.addActionListener(e -> parentWindow.showScreen("MENU"));
 
-        g2d.setColor(new Color(250, 0, 0));
-        g2d.drawRoundRect(20, 20, getWidth() - 40, getHeight() - 40, 25, 25);
-
-        Font titleFont = new Font("Arial", Font.BOLD, 22);
-        g2d.setFont(titleFont);
-        g2d.setColor(new Color(188, 255, 3));
-        g2d.drawString("Правила гри «Швидка Арифметика»", 45, 70);
-
-        g2d.setColor(new Color(220, 100, 50));
-        g2d.drawLine(45, 85, 550, 85);
-
-        Font textFont = new Font("Arial", Font.PLAIN, 15);
-        g2d.setFont(textFont);
-        g2d.setColor(new Color(25, 255, 0));
-
-        FontMetrics fm = g2d.getFontMetrics();
-        int lineHeight = fm.getHeight() + 8;
-
-        int textX = 45;
-        int startY = 125;
-
-        g2d.drawString("1. Гра призначена для перевірки швидкості обчислень.", textX, startY);
-        g2d.drawString("2. На екрані з'являється випадковий математичний приклад.", textX, startY + lineHeight);
-        g2d.drawString("3. Твоє завдання — якомога швидше ввести правильну відповідь.", textX, startY + lineHeight * 2);
-        g2d.drawString("4. За правильні відповіді нараховуються бали.", textX, startY + lineHeight * 3);
-        g2d.drawString("5. Поспішай, адже час на роздуми обмежений!", textX, startY + lineHeight * 4);
-
-        g2d.setColor(new Color(0, 180, 255));
-        g2d.setFont(new Font("Arial", Font.ITALIC, 14));
-        g2d.drawString("Успіхів у проходженні гри!", textX, startY + lineHeight * 5 + 15);
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(new Color(30, 30, 40));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 25, 0));
+        bottomPanel.add(btnBack);
+        add(bottomPanel, BorderLayout.SOUTH);
     }
 }

@@ -1,17 +1,25 @@
 package windows;
 
-import java.awt.*;
 import javax.swing.*;
+import java.awt.*;
 
-public class Author extends JFrame {
-    public Author() {
-        super("Про автора");
-        setIconImage(new ImageIcon("Photo/Icon/menu_icon.png").getImage());
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setBounds(800, 200, 550, 420);
-        setResizable(false);
+public class Author extends JPanel {
+    public Author(Menu parentWindow) {
+        setLayout(new BorderLayout());
+        setBackground(Color.BLACK);
 
-        add(new AuthorCanvas());
+        AuthorCanvas canvas = new AuthorCanvas();
+        add(canvas, BorderLayout.CENTER);
+
+        JButton btnBack = new JButton("Назад у меню");
+        btnBack.setFont(new Font("Arial", Font.BOLD, 14));
+        btnBack.addActionListener(e -> parentWindow.showScreen("MENU"));
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(Color.BLACK);
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        bottomPanel.add(btnBack);
+        add(bottomPanel, BorderLayout.SOUTH);
     }
 }
 
