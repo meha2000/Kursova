@@ -26,7 +26,14 @@ public class Game extends JPanel {
 
     private int score = 0;
     private Timer gameTimer;
+    private Timer animTimer;
     private int timeLeft = 60;
+
+    private final Color baseBorderColor = new Color(250, 0, 0);
+    private Color currentBorderColor = baseBorderColor;
+    private float animProgress = 0.0f;
+    private Color targetFlashColor = baseBorderColor;
+    private boolean timerBlinkState = false;
 
     private static final String DATA_FILE = "players_data.dat";
     private static final String BG_SOUND = "Sound/bg_music.wav";
@@ -42,58 +49,49 @@ public class Game extends JPanel {
         setBackground(new Color(30, 30, 40));
 
         askForComplexity();
-
-        // Запускаємо фонову музику гри
         soundPlayer.startBackgroundMusic(BG_SOUND);
 
-        // 1. Інформація про складність
         lblComplexityInfo = new JLabel("Рівень складності: " + complexity, SwingConstants.CENTER);
         lblComplexityInfo.setFont(new Font("Arial", Font.BOLD, 14));
         lblComplexityInfo.setForeground(new Color(255, 200, 0));
         lblComplexityInfo.setBounds(0, 35, 735, 25);
         add(lblComplexityInfo);
 
-        // 2. Таймер
         lblTimer = new JLabel("Час: " + timeLeft + " с", SwingConstants.CENTER);
         lblTimer.setFont(new Font("Arial", Font.BOLD, 16));
         lblTimer.setForeground(new Color(255, 80, 80));
         lblTimer.setBounds(0, 65, 735, 25);
         add(lblTimer);
 
-        // 3. Напис із прикладом
         lblExample = new JLabel("", SwingConstants.CENTER);
         lblExample.setFont(new Font("Arial", Font.BOLD, 28));
         lblExample.setForeground(Color.WHITE);
         lblExample.setBounds(0, 120, 735, 50);
         add(lblExample);
 
-        // 4. Поле для введення відповіді (суворо по центру: (735 - 150) / 2 = 292)
         txtAnswer = new JTextField();
         txtAnswer.setFont(new Font("Arial", Font.BOLD, 24));
         txtAnswer.setHorizontalAlignment(JTextField.CENTER);
         txtAnswer.setBounds(292, 185, 150, 45);
         add(txtAnswer);
 
-        // 5. Кнопка перевірки (суворо по центру: x = 292)
         btnCheck = new JButton("Перевірити");
         btnCheck.setFont(new Font("Arial", Font.BOLD, 16));
         btnCheck.setBounds(292, 245, 150, 40);
         add(btnCheck);
 
-        // 6. Лічильник балів
         lblScore = new JLabel("Правильних відповідей: 0", SwingConstants.CENTER);
         lblScore.setFont(new Font("Arial", Font.PLAIN, 14));
         lblScore.setForeground(new Color(200, 200, 200));
         lblScore.setBounds(0, 315, 735, 30);
         add(lblScore);
 
-        // 7. Кнопка повернення в меню суворо по центру внизу ((735 - 120) / 2 = 307)
         btnBack = new JButton("У меню");
         btnBack.setFont(new Font("Arial", Font.BOLD, 13));
         btnBack.setBounds(307, 420, 120, 35);
         btnBack.addActionListener(e -> {
-            if (gameTimer != null) gameTimer.stop();
-            soundPlayer.stopBackgroundMusic(); // Зупиняємо музику при виході в меню
+            stopAllTimers();
+            soundPlayer.stopBackgroundMusic();
             parentWindow.showScreen("MENU");
         });
         add(btnBack);
@@ -103,16 +101,52 @@ public class Game extends JPanel {
         btnCheck.addActionListener(e -> checkAnswer());
         txtAnswer.addActionListener(e -> checkAnswer());
 
-        gameTimer = new Timer(1000, e -> {
-            timeLeft--;
-            lblTimer.setText("Час: " + timeLeft + " с");
+        animTimer = new Timer(30, e -> {
+            if (animProgress > 0.0f) {
+                animProgress -= 0.05f;
+                if (animProgress < 0.0f) animProgress = 0.0f;
+
+                int r = (int) (baseBorderColor.getRed() + (targetFlashColor.getRed() - baseBorderColor.getRed()) * animProgress);
+                int g = (int) (baseBorderColor.getGreen() + (targetFlashColor.getGreen() - baseBorderColor.getGreen()) * animProgress);
+                int b = (int) (baseBorderColor.getBlue() + (targetFlashColor.getBlue() - baseBorderColor.getBlue()) * animProgress);
+
+                currentBorderColor = new Color(r, g, b);
+                repaint();
+            }
+        });
+        animTimer.start();
+
+        gameTimer = new Timer(500, e -> {
+            timerBlinkState = !timerBlinkState;
+
+            if (timerBlinkState) {
+                timeLeft--;
+                lblTimer.setText("Час: " + timeLeft + " с");
+            }
+
+            if (timeLeft <= 10 && timeLeft > 0) {
+                lblTimer.setForeground(timerBlinkState ? new Color(255, 30, 30) : new Color(255, 220, 50));
+                lblTimer.setFont(new Font("Arial", Font.BOLD, timerBlinkState ? 19 : 16));
+            }
 
             if (timeLeft <= 0) {
-                gameTimer.stop();
+                stopAllTimers();
                 endGame();
             }
         });
         gameTimer.start();
+    }
+
+    private void triggerBorderFlash(Color flashColor) {
+        this.targetFlashColor = flashColor;
+        this.animProgress = 1.0f;
+        this.currentBorderColor = flashColor;
+        repaint();
+    }
+
+    private void stopAllTimers() {
+        if (gameTimer != null) gameTimer.stop();
+        if (animTimer != null) animTimer.stop();
     }
 
     private void askForComplexity() {
@@ -147,22 +181,25 @@ public class Game extends JPanel {
             int playerAnswer = Integer.parseInt(txtAnswer.getText().trim());
 
             if (playerAnswer == currentExample.getExample()) {
-                soundPlayer.playEffect(CORRECT_SOUND); // Звук правильної відповіді
+                soundPlayer.playEffect(CORRECT_SOUND);
+                triggerBorderFlash(new Color(0, 255, 90)); // Плавний зелений спалах
                 score++;
                 lblScore.setText("Правильних відповідей: " + score);
                 generateNewTask();
             } else {
-                soundPlayer.playEffect(WRONG_SOUND);   // Звук неправильної відповіді
+                soundPlayer.playEffect(WRONG_SOUND);
+                triggerBorderFlash(new Color(255, 20, 20)); // Червоний спалах
                 txtAnswer.setText("");
             }
         } catch (NumberFormatException ex) {
-            soundPlayer.playEffect(WRONG_SOUND);       // Звук помилки при некоректному вводі
+            soundPlayer.playEffect(WRONG_SOUND);
+            triggerBorderFlash(new Color(255, 20, 20));
             txtAnswer.setText("");
         }
     }
 
     private void endGame() {
-        soundPlayer.stopBackgroundMusic(); // Зупиняємо фонову музику по завершенню гри
+        soundPlayer.stopBackgroundMusic();
         txtAnswer.setEnabled(false);
         btnCheck.setEnabled(false);
         lblExample.setText("Час вийшов!");
@@ -219,7 +256,9 @@ public class Game extends JPanel {
         g2d.setColor(new Color(30, 30, 40));
         g2d.fillRect(0, 0, getWidth(), getHeight());
 
-        g2d.setColor(new Color(250, 0, 0));
+        float strokeWidth = 1.5f + (animProgress * 2.5f);
+        g2d.setStroke(new BasicStroke(strokeWidth));
+        g2d.setColor(currentBorderColor);
         g2d.drawRoundRect(20, 20, getWidth() - 40, getHeight() - 50, 20, 20);
     }
 }
